@@ -1,0 +1,80 @@
+{
+  "name": "Ticket",
+  "plural": "ticket",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "idInjection": false,
+    "postgresql": {
+      "schema": "public",
+      "table": "ticket"
+    }
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "required": true,
+      "length": null,
+      "precision": null,
+      "scale": null,
+      "id": 1,
+      "postgresql": {
+        "columnName": "id",
+        "dataType": "uuid",
+        "dataLength": null,
+        "dataPrecision": null,
+        "dataScale": null,
+        "nullable": "NO"
+      }
+    },
+    "clockIn": {
+      "type": "String",
+      "required": true,
+      "length": null,
+      "precision": null,
+      "scale": null,
+      "postgresql": {
+        "columnName": "clock_in",
+        "dataType": "timestamp without time zone",
+        "dataLength": null,
+        "dataPrecision": null,
+        "dataScale": null,
+        "nullable": "NO"
+      }
+    },
+    "clockOut": {
+      "type": "String",
+      "required": false,
+      "length": null,
+      "precision": null,
+      "scale": null,
+      "postgresql": {
+        "columnName": "clock_out",
+        "dataType": "timestamp without time zone",
+        "dataLength": null,
+        "dataPrecision": null,
+        "dataScale": null,
+        "nullable": "YES"
+      }
+    },
+    "plateNumber": {
+      "type": "string",
+      "required": true,
+      "length": null,
+      "precision": null,
+      "scale": null,
+      "postgresql": {
+        "columnName": "plate_number",
+        "dataType": "character varying",
+        "dataLength": null,
+        "dataPrecision": null,
+        "dataScale": null,
+        "nullable": "YES"
+      }
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}
