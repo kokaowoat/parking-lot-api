@@ -8,36 +8,10 @@ module.exports = function (ParkSlot) {
   disable.disableAllMethods(ParkSlot, ['create', 'find']);
 
   ParkSlot.createParkSlotList = async (carsize, amount, cb) => {
-    let createdCarSize = carsize ? carsize.toUpperCase() : null;
-    let createdSlot = [];
-    if (!createdCarSize || !amount || createdCarSize.replace(/\s/g, '') === '') {
-      let activityLog = {
-        "status": "FAIL",
-        "type": "CREATE_PARK_SLOT",
-        "additionalData": JSON.stringify({
-          carsize,
-          amount
-        }),
-      }
-      app.models.ActivityLog.create(activityLog);
-      return;
-    }
-    for (let i = 0; i < amount; i++) {
-      let res = await ParkSlot.create(
-        {
-          "id": "6701d660-1a6d-4b43-a6a4-5750efcfeddf",
-          "carSize": createdCarSize
-        }
-      );
-      if (res) {
-        let activityLog = {
-          "status": "SUCCESS",
-          "type": "CREATE_PARK_SLOT",
-          "additionalData": JSON.stringify(res),
-        }
-        app.models.ActivityLog.create(activityLog);
-        createdSlot.push(res);
-      } else {
+    try {
+      let createdCarSize = carsize ? carsize.toUpperCase() : null;
+      let createdSlot = [];
+      if (!createdCarSize || !amount || createdCarSize.replace(/\s/g, '') === '') {
         let activityLog = {
           "status": "FAIL",
           "type": "CREATE_PARK_SLOT",
@@ -47,9 +21,41 @@ module.exports = function (ParkSlot) {
           }),
         }
         app.models.ActivityLog.create(activityLog);
+        return cb();
+        // return;
       }
+      for (let i = 0; i < amount; i++) {
+        let slotData = await ParkSlot.create(
+          {
+            "carSize": createdCarSize
+          });
+        if (slotData) {
+          let activityLog = {
+            "status": "SUCCESS",
+            "type": "CREATE_PARK_SLOT",
+            "additionalData": JSON.stringify(slotData),
+          }
+          app.models.ActivityLog.create(activityLog);
+          createdSlot.push(slotData);
+        }
+      }
+      return cb(null, { statusCode: 200, statusMessage: 'SUCCESS', data: createdSlot });
+      // return { statusCode: 200, statusMessage: 'SUCCESS', data: createdSlot };
+
+    } catch (error) {
+      let activityLog = {
+        "status": "FAIL",
+        "type": "CREATE_PARK_SLOT",
+        "additionalData": JSON.stringify({
+          carsize,
+          amount,
+          error
+        }),
+      }
+      app.models.ActivityLog.create(activityLog);
+      return cb({ message: error.message });
+      // return { statusCode: 500, message: error.message };
     }
-    return createdSlot;
   }
 
   ParkSlot.remoteMethod('createParkSlotList', {
