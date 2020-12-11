@@ -28,5 +28,9 @@
   "Car": {
     "dataSource": "postgres",
     "public": true
+  },
+  "ParkSlot": {
+    "dataSource": "db",
+    "public": true
   }
 }
