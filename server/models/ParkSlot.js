@@ -5,7 +5,7 @@ const rq = require('../../common/helper').httpHelper;
 const app = require('../server');
 
 module.exports = function (ParkSlot) {
-  disable.disableAllMethods(ParkSlot, ['create', 'find']);
+  disable.disableAllMethods(ParkSlot, ['find']);
 
   ParkSlot.createParkSlotList = async (carsize, amount, cb) => {
     try {
@@ -69,4 +69,100 @@ module.exports = function (ParkSlot) {
     ],
     returns: { arg: 'data', type: 'object', root: true },
   });
+
+  ParkSlot.park = async (carsize, plateNumber, cb) => {
+    try {
+      // Create / Find Car
+      const carRes = await app.models.Car.findOrCreate(
+        {
+          where: {
+            plateNumber: plateNumber
+          }
+        },
+        {
+          plateNumber,
+          size: carsize
+        });
+      // TODO check if error
+      const car = carRes[0];
+
+      // Create Ticket
+      // TODO check if error
+      const ticket = await app.models.Ticket.create(
+        {
+          plateNumber: car.plateNumber,
+          clockIn: (new Date()).toISOString()
+        }
+      );
+      console.log('ticketRes>>', ticket);
+      // Get Park Slot from nearest by car_size
+      const freeSlot = await ParkSlot.findNearestSlot(car.size);
+      console.log('avaliableParkSlot>>>', freeSlot);
+
+      // Update Park Slot
+      const park = await freeSlot.updateAttributes(
+        {
+          id: freeSlot.id,
+          isPark: true,
+          plateNumber: car.plateNumber,
+          updatedAt: (new Date()).toISOString()
+        }
+      );
+      console.log('park>>>', park);
+      const parkResponse = {
+        ticketId: ticket.id,
+        slotId: park.id,
+        plateNumber: ticket.plateNumber,
+        clockIn: ticket.clockIn,        
+        carSize: car.size,
+        slotNumber: park.number
+      }
+      let activityLog = {
+        "status": "SUCCESS",
+        "type": "PARK_CAR",
+        "additionalData": JSON.stringify({
+          ...parkResponse
+        }),
+      }
+      app.models.ActivityLog.create(activityLog);
+      return cb(null, parkResponse);
+    } catch (error) {
+      let activityLog = {
+        "status": "FAIL",
+        "type": "PARK_CAR",
+        "additionalData": JSON.stringify({
+          carsize,
+          plateNumber,
+          error
+        }),
+      }
+      app.models.ActivityLog.create(activityLog);
+      return cb({ message: error.message });
+    }
+  }
+
+  ParkSlot.remoteMethod('park', {
+    http: {
+      path: '/park',
+      verb: 'post',
+    },
+    accepts: [
+      { arg: 'carsize', type: 'string', 'required': true },
+      { arg: 'plateNumber', type: 'string', 'required': true },
+    ],
+    returns: { arg: 'data', type: 'object', root: true },
+  });
+
+  ParkSlot.findNearestSlot = async (carSize) => {
+    const avaliableParkSlot = await ParkSlot.find({
+      where: {
+        carSize: carSize,
+        isPark: false,
+        isAvailable: true
+      },
+      order: 'number ASC',
+      limit: 1
+    });
+    return avaliableParkSlot.length > 0 ? avaliableParkSlot[0] : null;
+  }
 };
