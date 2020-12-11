@@ -30,7 +30,11 @@
     "public": true
   },
   "ParkSlot": {
-    "dataSource": "db",
+    "dataSource": "postgres",
+    "public": true
+  },
+  "ActivityLog": {
+    "dataSource": "postgres",
     "public": true
   }
 }
