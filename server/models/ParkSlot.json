@@ -14,7 +14,7 @@
     "id": {
       "type": "string",
       "id": 1,
-      "required": true,
+      "required": false,
       "length": null,
       "precision": null,
       "scale": null,
@@ -104,7 +104,7 @@
     },
     "creadtedAt": {
       "type": "String",
-      "required": true,
+      "required": false,
       "length": null,
       "precision": null,
       "scale": null,
