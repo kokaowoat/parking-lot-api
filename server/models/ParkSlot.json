@@ -59,7 +59,7 @@
     },
     "isPark": {
       "type": "Boolean",
-      "required": true,
+      "required": false,
       "length": 1,
       "precision": null,
       "scale": null,
@@ -74,7 +74,7 @@
     },
     "isAvailable": {
       "type": "Boolean",
-      "required": true,
+      "required": false,
       "length": 1,
       "precision": null,
       "scale": null,
