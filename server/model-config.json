@@ -20,9 +20,13 @@
   "Role": {
     "dataSource": "db",
     "public": false
-  },  
+  },
   "Ticket": {
     "dataSource": "postgres",
     "public": true
-  }  
+  },
+  "Car": {
+    "dataSource": "postgres",
+    "public": true
+  }
 }
