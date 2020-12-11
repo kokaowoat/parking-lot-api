@@ -13,26 +13,28 @@
       "./mixins"
     ]
   },
-  "User": {
-    "dataSource": "db"
-  },
-  "AccessToken": {
-    "dataSource": "db",
-    "public": false
-  },
   "ACL": {
     "dataSource": "db",
     "public": false
   },
-  "RoleMapping": {
-    "dataSource": "db",
-    "public": false,
-    "options": {
-      "strictObjectIDCoercion": true
-    }
-  },
   "Role": {
     "dataSource": "db",
     "public": false
+  },
+  "Ticket": {
+    "dataSource": "postgres",
+    "public": true
+  },
+  "Car": {
+    "dataSource": "postgres",
+    "public": true
+  },
+  "ParkSlot": {
+    "dataSource": "postgres",
+    "public": true
+  },
+  "ActivityLog": {
+    "dataSource": "postgres",
+    "public": true
   }
 }
