@@ -264,7 +264,7 @@ module.exports = function (ParkSlot) {
   ParkSlot.getStatus = async (carSize) => {
     const parkSlot = await ParkSlot.find(
       {
-        where: { carSize: carSize },
+        where: { carSize: carSize ? carSize.toUpperCase() : undefined },
         fields: {
           number: true,
           carSize: true,
