@@ -42,7 +42,7 @@ module.exports = function (Car) {
         },
         {
           plateNumber,
-          size: carSize
+          size: carSize.toUpperCase()
         });
 
       const car = carRes[0];

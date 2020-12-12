@@ -67,14 +67,23 @@ module.exports = function (ParkSlot) {
       { arg: 'amount', type: 'number', 'required': true },
     ],
     returns: { arg: 'data', type: 'object', root: true },
-  });
+  });  
 
   ParkSlot.park = async (carSize, plateNumber, cb) => {
     try {
       // Find/Create Car
-      const car = await app.models.Car.findOrCreateCar(plateNumber, carSize);
+      const car = await app.models.Car.findOrCreateCar(plateNumber, carSize.toUpperCase());
       if (!car) {
         return 'Cannot find or create car';
+      }
+      if(car.size !== carSize.toUpperCase()) {
+        return `Car size are not match (database: ${car.size} | input parameter: ${carSize.toUpperCase()})`;
+      }
+
+      // Check is car exist in park slot
+      const isCarExistPark = await ParkSlot.isCarExistInSlot(plateNumber);
+      if (isCarExistPark) {
+        return `Car (plate number: ${plateNumber}) has already existed in park slot`;
       }
 
       // Get Park Slot from nearest by car_size
@@ -151,19 +160,19 @@ module.exports = function (ParkSlot) {
     try {
       // Get ticket by plateNumber orderby latest
       const ticket = await app.models.Ticket.getLatestTicket(plateNumber);
-      if(!ticket) {
+      if (!ticket) {
         return 'Cannot find ticket';
       }
 
       // Update ticket    
       const updateTicket = await app.models.Ticket.updateLeave(ticket);
-      if(!updateTicket) {
+      if (!updateTicket) {
         return 'Cannot update ticket';
       }
 
       // Update Park Slot
       const parkedSlot = await ParkSlot.findParkedSlotByPlateNumber(plateNumber);
-      if(!parkedSlot) {
+      if (!parkedSlot) {
         return `Cannot find parked slot by plate number: ${plateNumber}`;
       }
 
@@ -175,9 +184,9 @@ module.exports = function (ParkSlot) {
           updatedAt: (new Date()).toISOString()
         }
       );
-      if(!leaveSlot) {
+      if (!leaveSlot) {
         return 'Cannot leave park slot';
-      }      
+      }
 
       // Activity log
       const leaveResponse = {
@@ -284,5 +293,15 @@ module.exports = function (ParkSlot) {
     ],
     returns: { arg: 'data', type: 'object', root: true },
   });
+
+  ParkSlot.isCarExistInSlot = async (plateNumber, cb) => {
+    const car = await ParkSlot.find({
+      where: { plateNumber: plateNumber }
+    });
+    if (car && car.length > 0) {
+      return true;
+    }
+    return false;
+  }
 
 };
