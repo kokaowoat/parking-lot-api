@@ -57,7 +57,6 @@ module.exports = function (Ticket) {
         "additionalData": JSON.stringify(updateTicket),
       }
       app.models.ActivityLog.create(activityLog);
-      console.log('updateTicket>>', updateTicket);
       return updateTicket;
 
     } catch (error) {
