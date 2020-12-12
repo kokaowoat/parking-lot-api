@@ -2,6 +2,7 @@
 
 const disable = require('../../common/helper').disableHelper;
 const rq = require('../../common/helper').httpHelper;
+const app = require('../server');
 
 module.exports = function (Car) {
   disable.disableAllMethods(Car, ['create', 'find']);
@@ -9,7 +10,7 @@ module.exports = function (Car) {
   Car.getPlaterNumberList = async (carSize, cb) => {
     const cars = await Car.find(
       {
-        where: { size: carSize? carSize.toUpperCase(): undefined },
+        where: { size: carSize ? carSize.toUpperCase() : undefined },
         fields: {
           plateNumber: true,
           size: true
@@ -30,4 +31,34 @@ module.exports = function (Car) {
     ],
     returns: { arg: 'data', type: 'object', root: true },
   });
+
+  Car.findOrCreateCar = async (plateNumber, carSize, cb) => {
+    try {
+      const carRes = await app.models.Car.findOrCreate(
+        {
+          where: {
+            plateNumber: plateNumber
+          }
+        },
+        {
+          plateNumber,
+          size: carSize
+        });
+
+      const car = carRes[0];
+      if (car) {
+        let activityLog = {
+          "status": "SUCCESS",
+          "type": "FIND_CREATE_CAR",
+          "additionalData": JSON.stringify(car),
+        }
+        app.models.ActivityLog.create(activityLog);
+        return car;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      return cb(error);
+    }
+  }
 };
