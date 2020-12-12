@@ -1,0 +1,95 @@
+{
+  "name": "ActivityLog",
+  "plural": "activity-log",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "idInjection": false,
+    "postgresql": {
+      "schema": "public",
+      "table": "activity_log"
+    }
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "id": 1,
+      "required": false,
+      "length": null,
+      "precision": null,
+      "scale": null,
+      "postgresql": {
+        "columnName": "id",
+        "dataType": "uuid",
+        "dataLength": null,
+        "dataPrecision": null,
+        "dataScale": null,
+        "nullable": "NO"
+      }
+    },    
+    "status" : {
+      "type" : "String",
+      "required" : true,
+      "length" : 10,
+      "precision" : null,
+      "scale" : null,
+      "postgresql" : {
+        "columnName" : "status",
+        "dataType" : "character varyings",
+        "dataLength" : 10,
+        "dataPrecision" : null,
+        "dataScale" : null,
+        "nullable" : "NO"
+      }
+    },
+    "type" : {
+      "type" : "String",
+      "required" : true,
+      "length" : 20,
+      "precision" : null,
+      "scale" : null,
+      "postgresql" : {
+        "columnName" : "type",
+        "dataType" : "character varyings",
+        "dataLength" : 20,
+        "dataPrecision" : null,
+        "dataScale" : null,
+        "nullable" : "NO"
+      }
+    },
+    "additionalData": {
+      "type": "String",
+      "required": false,
+      "length": null,
+      "precision": 29,
+      "scale": 6,
+      "postgresql": {
+        "columnName": "additional_data",
+        "dataType": "json",
+        "dataLength": null,
+        "dataPrecision": null,
+        "dataScale": null,
+        "nullable": "YES"
+      }
+    },
+    "createdAt": {
+      "type": "String",
+      "required": false,
+      "length": null,
+      "precision": 29,
+      "scale": 6,
+      "postgresql": {
+        "columnName": "created_at",
+        "dataType": "timestamp without time zone",
+        "dataLength": null,
+        "dataPrecision": null,
+        "dataScale": null,
+        "nullable": "NO"
+      }
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

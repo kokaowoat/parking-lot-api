@@ -1,0 +1,40 @@
+{
+  "_meta": {
+    "sources": [
+      "loopback/common/models",
+      "loopback/server/models",
+      "../common/models",
+      "./models"
+    ],
+    "mixins": [
+      "loopback/common/mixins",
+      "loopback/server/mixins",
+      "../common/mixins",
+      "./mixins"
+    ]
+  },
+  "ACL": {
+    "dataSource": "db",
+    "public": false
+  },
+  "Role": {
+    "dataSource": "db",
+    "public": false
+  },
+  "Ticket": {
+    "dataSource": "postgres",
+    "public": true
+  },
+  "Car": {
+    "dataSource": "postgres",
+    "public": true
+  },
+  "ParkSlot": {
+    "dataSource": "postgres",
+    "public": true
+  },
+  "ActivityLog": {
+    "dataSource": "postgres",
+    "public": true
+  }
+}

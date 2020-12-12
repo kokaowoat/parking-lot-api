@@ -1,0 +1,7 @@
+{
+  "extends": "loopback",
+  "rules": {
+    "function-paren-newline": 0,
+    "max-len": [2, 120, 4]
+  }
+}
