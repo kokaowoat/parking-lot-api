@@ -1,5 +1,8 @@
 'use strict';
 
+// TODO uncomment in develop mode
+// require('dotenv').config();
+
 var loopback = require('loopback');
 var boot = require('loopback-boot');
 
