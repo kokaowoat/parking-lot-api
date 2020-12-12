@@ -67,7 +67,7 @@ module.exports = function (Car) {
         }),
       }
       app.models.ActivityLog.create(activityLog);
-      return cb(error);
+      throw new Error(error.message);
     }
   }
 };
