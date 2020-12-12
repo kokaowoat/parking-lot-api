@@ -4,7 +4,7 @@ const disable = require('../../common/helper').disableHelper;
 const rq = require('../../common/helper').httpHelper;
 const app = require('../server');
 
-module.exports = function(Ticket) {
+module.exports = function (Ticket) {
   disable.disableAllMethods(Ticket, ['find']);
 
   Ticket.createTicket = async (plateNumber, cb) => {
@@ -28,13 +28,13 @@ module.exports = function(Ticket) {
         return null;
       }
     } catch (error) {
-      console.log('errrrrr', error);
       let activityLog = {
         "status": "FAIL",
         "type": "CREATE_TICKET",
         "additionalData": JSON.stringify({
           plateNumber: plateNumber,
-          clockIn: (new Date()).toISOString()
+          clockIn: (new Date()).toISOString(),
+          error
         }),
       }
       app.models.ActivityLog.create(activityLog);
@@ -42,7 +42,39 @@ module.exports = function(Ticket) {
     }
   }
 
-  Ticket.getLatestTicket = async(plateNumber) => {
+  Ticket.updateLeave = async (ticket, cb) => {
+    try {
+      const updateTicket = await ticket.updateAttributes(
+        {
+          id: ticket.id,
+          clockOut: (new Date()).toISOString(),
+          updatedAt: (new Date()).toISOString()
+        }
+      );
+      let activityLog = {
+        "status": "SUCCESS",
+        "type": "UPDATE_LEAVE_TICKET",
+        "additionalData": JSON.stringify(updateTicket),
+      }
+      app.models.ActivityLog.create(activityLog);
+      console.log('updateTicket>>', updateTicket);
+      return updateTicket;
+
+    } catch (error) {
+      let activityLog = {
+        "status": "FAIL",
+        "type": "UPDATE_LEAVE_TICKET",
+        "additionalData": JSON.stringify({
+          ticket,
+          error
+        }),
+      }
+      app.models.ActivityLog.create(activityLog);
+      return cb(error);
+    }
+  }
+
+  Ticket.getLatestTicket = async (plateNumber) => {
     const lastestTicket = await Ticket.find({
       where: {
         plateNumber: plateNumber,
