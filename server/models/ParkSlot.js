@@ -158,7 +158,7 @@ module.exports = function (ParkSlot) {
       // Get ticket by plateNumber orderby latest
       const ticket = await app.models.Ticket.getLatestTicket(plateNumber);
       console.log('ticket', ticket);
-      
+
       // Update ticket    
       const updateTicket = await ticket.updateAttributes(
         {
@@ -168,7 +168,7 @@ module.exports = function (ParkSlot) {
         }
       );
       console.log('updateTicket', updateTicket);
-      
+
       // Update Park Slot
       const parkedSlot = await ParkSlot.findParkedSlotByPlateNumber(plateNumber);
       console.log('parkedSlot', parkedSlot);
@@ -259,5 +259,35 @@ module.exports = function (ParkSlot) {
       }
     });
     return parkedSlot.length > 0 ? parkedSlot[0] : null;
-  }  
+  }
+
+  ParkSlot.getStatus = async (carSize) => {
+    const parkSlot = await ParkSlot.find(
+      {
+        where: { carSize: carSize },
+        fields: {
+          number: true,
+          carSize: true,
+          isPark: true,
+          isAvailable: true
+        },
+        order: ['carSize ASC', 'number ASC'],
+      }
+    );
+    console.log('parkSlot', parkSlot);
+
+    return parkSlot;
+  }
+
+  ParkSlot.remoteMethod('getStatus', {
+    http: {
+      path: '/status',
+      verb: 'get',
+    },
+    accepts: [
+      { arg: 'carSize', type: 'string', 'required': false },
+    ],
+    returns: { arg: 'data', type: 'object', root: true },
+  });
+
 };
