@@ -58,6 +58,15 @@ module.exports = function (Car) {
         return null;
       }
     } catch (error) {
+      let activityLog = {
+        "status": "FAIL",
+        "type": "FIND_CREATE_CAR",
+        "additionalData": JSON.stringify({
+          plateNumber: plateNumber, 
+          carSize: carSize
+        }),
+      }
+      app.models.ActivityLog.create(activityLog);
       return cb(error);
     }
   }
