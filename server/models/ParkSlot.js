@@ -4,58 +4,57 @@ const disable = require('../../common/helper').disableHelper;
 const rq = require('../../common/helper').httpHelper;
 const app = require('../server');
 
-module.exports = function (ParkSlot) {
+module.exports = function(ParkSlot) {
   disable.disableAllMethods(ParkSlot);
 
   ParkSlot.createParkSlotList = async (carsize, amount, cb) => {
     try {
-      let createdCarSize = carsize ? carsize.toUpperCase() : null;
-      let createdSlot = [];
+      const createdCarSize = carsize ? carsize.toUpperCase() : null;
+      const createdSlot = [];
       if (!createdCarSize || !amount || createdCarSize.replace(/\s/g, '') === '') {
-        let activityLog = {
-          "status": "FAIL",
-          "type": "CREATE_PARK_SLOT",
-          "additionalData": JSON.stringify({
+        const activityLog = {
+          'status': 'FAIL',
+          'type': 'CREATE_PARK_SLOT',
+          'additionalData': JSON.stringify({
             carsize,
-            amount
+            amount,
           }),
-        }
+        };
         app.models.ActivityLog.create(activityLog);
         throw new Error('Invalid parameter');
         // return;
       }
       for (let i = 0; i < amount; i++) {
-        let slotData = await ParkSlot.create(
+        const slotData = await ParkSlot.create(
           {
-            "carSize": createdCarSize
+            'carSize': createdCarSize,
           });
         if (slotData) {
-          let activityLog = {
-            "status": "SUCCESS",
-            "type": "CREATE_PARK_SLOT",
-            "additionalData": JSON.stringify(slotData),
-          }
+          const activityLog = {
+            'status': 'SUCCESS',
+            'type': 'CREATE_PARK_SLOT',
+            'additionalData': JSON.stringify(slotData),
+          };
           app.models.ActivityLog.create(activityLog);
           createdSlot.push(slotData);
         }
       }
-      return cb(null, { statusCode: 200, statusMessage: 'SUCCESS', data: createdSlot });
+      return cb(null, {statusCode: 200, statusMessage: 'SUCCESS', data: createdSlot});
       // return { statusCode: 200, statusMessage: 'SUCCESS', data: createdSlot };
-
     } catch (error) {
-      let activityLog = {
-        "status": "FAIL",
-        "type": "CREATE_PARK_SLOT",
-        "additionalData": JSON.stringify({
+      const activityLog = {
+        'status': 'FAIL',
+        'type': 'CREATE_PARK_SLOT',
+        'additionalData': JSON.stringify({
           carsize,
           amount,
-          error
+          error,
         }),
-      }
+      };
       app.models.ActivityLog.create(activityLog);
       throw new Error(error.message);
     }
-  }
+  };
 
   ParkSlot.remoteMethod('createParkSlotList', {
     http: {
@@ -63,11 +62,11 @@ module.exports = function (ParkSlot) {
       verb: 'post',
     },
     accepts: [
-      { arg: 'carsize', type: 'string', 'required': true },
-      { arg: 'amount', type: 'number', 'required': true },
+      {arg: 'carsize', type: 'string', 'required': true},
+      {arg: 'amount', type: 'number', 'required': true},
     ],
-    returns: { arg: 'data', type: 'object', root: true },
-  });  
+    returns: {arg: 'data', type: 'object', root: true},
+  });
 
   ParkSlot.park = async (carSize, plateNumber, cb) => {
     try {
@@ -76,7 +75,7 @@ module.exports = function (ParkSlot) {
       if (!car) {
         return 'Cannot find or create car';
       }
-      if(car.size !== carSize.toUpperCase()) {
+      if (car.size !== carSize.toUpperCase()) {
         return `Car size are not match (database: ${car.size} | input parameter: ${carSize.toUpperCase()})`;
       }
 
@@ -98,7 +97,7 @@ module.exports = function (ParkSlot) {
           id: freeSlot.id,
           isPark: true,
           plateNumber: car.plateNumber,
-          updatedAt: (new Date()).toISOString()
+          updatedAt: (new Date()).toISOString(),
         }
       );
       if (!park) {
@@ -118,31 +117,31 @@ module.exports = function (ParkSlot) {
         plateNumber: ticket.plateNumber,
         clockIn: ticket.clockIn,
         carSize: car.size,
-        slotNumber: park.number
+        slotNumber: park.number,
       };
-      let activityLog = {
-        "status": "SUCCESS",
-        "type": "PARK_CAR",
-        "additionalData": JSON.stringify({
-          ...parkResponse
+      const activityLog = {
+        'status': 'SUCCESS',
+        'type': 'PARK_CAR',
+        'additionalData': JSON.stringify({
+          ...parkResponse,
         }),
-      }
+      };
       app.models.ActivityLog.create(activityLog);
       return cb(null, parkResponse);
     } catch (error) {
-      let activityLog = {
-        "status": "FAIL",
-        "type": "PARK_CAR",
-        "additionalData": JSON.stringify({
+      const activityLog = {
+        'status': 'FAIL',
+        'type': 'PARK_CAR',
+        'additionalData': JSON.stringify({
           carSize,
           plateNumber,
-          error
+          error,
         }),
-      }
+      };
       app.models.ActivityLog.create(activityLog);
       throw new Error(error.message);
     }
-  }
+  };
 
   ParkSlot.remoteMethod('park', {
     http: {
@@ -150,10 +149,10 @@ module.exports = function (ParkSlot) {
       verb: 'post',
     },
     accepts: [
-      { arg: 'carSize', type: 'string', 'required': true },
-      { arg: 'plateNumber', type: 'string', 'required': true },
+      {arg: 'carSize', type: 'string', 'required': true},
+      {arg: 'plateNumber', type: 'string', 'required': true},
     ],
-    returns: { arg: 'data', type: 'object', root: true },
+    returns: {arg: 'data', type: 'object', root: true},
   });
 
   ParkSlot.leave = async (plateNumber, cb) => {
@@ -164,7 +163,7 @@ module.exports = function (ParkSlot) {
         return 'Cannot find ticket';
       }
 
-      // Update ticket    
+      // Update ticket
       const updateTicket = await app.models.Ticket.updateLeave(ticket);
       if (!updateTicket) {
         return 'Cannot update ticket';
@@ -181,7 +180,7 @@ module.exports = function (ParkSlot) {
           id: parkedSlot.id,
           isPark: false,
           plateNumber: null,
-          updatedAt: (new Date()).toISOString()
+          updatedAt: (new Date()).toISOString(),
         }
       );
       if (!leaveSlot) {
@@ -196,30 +195,30 @@ module.exports = function (ParkSlot) {
         clockIn: ticket.clockIn,
         clockOut: ticket.clockOut,
         carSize: parkedSlot.carSize,
-        slotNumber: parkedSlot.number
+        slotNumber: parkedSlot.number,
       };
-      let activityLog = {
-        "status": "SUCCESS",
-        "type": "LEAVE_CAR",
-        "additionalData": JSON.stringify({
-          ...leaveResponse
+      const activityLog = {
+        'status': 'SUCCESS',
+        'type': 'LEAVE_CAR',
+        'additionalData': JSON.stringify({
+          ...leaveResponse,
         }),
-      }
+      };
       app.models.ActivityLog.create(activityLog);
       return cb(null, leaveResponse);
     } catch (error) {
-      let activityLog = {
-        "status": "FAIL",
-        "type": "LEAVE_CAR",
-        "additionalData": JSON.stringify({
+      const activityLog = {
+        'status': 'FAIL',
+        'type': 'LEAVE_CAR',
+        'additionalData': JSON.stringify({
           plateNumber,
-          error
+          error,
         }),
-      }
+      };
       app.models.ActivityLog.create(activityLog);
       throw new Error(error.message);
     }
-  }
+  };
 
   ParkSlot.remoteMethod('leave', {
     http: {
@@ -227,9 +226,9 @@ module.exports = function (ParkSlot) {
       verb: 'post',
     },
     accepts: [
-      { arg: 'plateNumber', type: 'string', 'required': true },
+      {arg: 'plateNumber', type: 'string', 'required': true},
     ],
-    returns: { arg: 'data', type: 'object', root: true },
+    returns: {arg: 'data', type: 'object', root: true},
   });
 
   ParkSlot.findNearestSlot = async (carSize, cb) => {
@@ -237,13 +236,13 @@ module.exports = function (ParkSlot) {
       where: {
         carSize: carSize,
         isPark: false,
-        isAvailable: true
+        isAvailable: true,
       },
       order: 'number ASC',
-      limit: 1
+      limit: 1,
     });
     return avaliableParkSlot.length > 0 ? avaliableParkSlot[0] : null;
-  }
+  };
 
   ParkSlot.remoteMethod('findNearestSlot', {
     http: {
@@ -251,37 +250,37 @@ module.exports = function (ParkSlot) {
       verb: 'get',
     },
     accepts: [
-      { arg: 'carSize', type: 'string', 'required': true },
+      {arg: 'carSize', type: 'string', 'required': true},
     ],
-    returns: { arg: 'data', type: 'object', root: true },
+    returns: {arg: 'data', type: 'object', root: true},
   });
 
   ParkSlot.findParkedSlotByPlateNumber = async (plateNumber) => {
     // TODO check must be only 1 slot
     const parkedSlot = await ParkSlot.find({
       where: {
-        plateNumber: plateNumber
-      }
+        plateNumber: plateNumber,
+      },
     });
     return parkedSlot.length > 0 ? parkedSlot[0] : null;
-  }
+  };
 
   ParkSlot.getStatus = async (carSize) => {
     const parkSlot = await ParkSlot.find(
       {
-        where: { carSize: carSize ? carSize.toUpperCase() : undefined },
+        where: {carSize: carSize ? carSize.toUpperCase() : undefined},
         fields: {
           number: true,
           carSize: true,
           isPark: true,
-          isAvailable: true
+          isAvailable: true,
         },
         order: ['carSize ASC', 'number ASC'],
       }
     );
 
     return parkSlot;
-  }
+  };
 
   ParkSlot.remoteMethod('getStatus', {
     http: {
@@ -289,19 +288,18 @@ module.exports = function (ParkSlot) {
       verb: 'get',
     },
     accepts: [
-      { arg: 'carSize', type: 'string', 'required': false },
+      {arg: 'carSize', type: 'string', 'required': false},
     ],
-    returns: { arg: 'data', type: 'object', root: true },
+    returns: {arg: 'data', type: 'object', root: true},
   });
 
   ParkSlot.isCarExistInSlot = async (plateNumber, cb) => {
     const car = await ParkSlot.find({
-      where: { plateNumber: plateNumber }
+      where: {plateNumber: plateNumber},
     });
     if (car && car.length > 0) {
       return true;
     }
     return false;
-  }
-
+  };
 };

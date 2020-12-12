@@ -1,1 +1,6 @@
 /client/
+/test/
+/common/
+/server/boot/
+/server/datasources*
+/server/server*

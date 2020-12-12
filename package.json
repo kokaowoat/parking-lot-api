@@ -8,7 +8,9 @@
   "scripts": {
     "lint": "eslint .",
     "start": "node .",
-    "posttest": "npm run lint"
+    "posttest": "npm run lint",
+    "test": "jest",
+    "lint:fix": "eslint --fix ."
   },
   "dependencies": {
     "compression": "^1.0.3",
@@ -24,8 +26,9 @@
   },
   "devDependencies": {
     "dotenv": "^8.2.0",
-    "eslint": "^3.17.1",
-    "eslint-config-loopback": "^8.0.0"
+    "eslint": "^3.19.0",
+    "eslint-config-loopback": "^13.1.0",
+    "jest": "^26.6.3"
   },
   "repository": {
     "type": "",
