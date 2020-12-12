@@ -87,7 +87,7 @@
         "nullable": "YES"
       }
     },
-    "creadtedAt": {
+    "createdAt": {
       "type": "String",
       "required": false,
       "length": null,
