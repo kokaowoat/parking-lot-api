@@ -165,4 +165,25 @@ module.exports = function (ParkSlot) {
     });
     return avaliableParkSlot.length > 0 ? avaliableParkSlot[0] : null;
   }
+
+  ParkSlot.remoteMethod('findNearestSlot', {
+    http: {
+      path: '/nearest-park-slot',
+      verb: 'get',
+    },
+    accepts: [
+      { arg: 'carSize', type: 'string', 'required': true },
+    ],
+    returns: { arg: 'data', type: 'object', root: true },
+  });
+
+  ParkSlot.findParkedSlotByPlateNumber = async (plateNumber) => {
+    // TODO check must be only 1 slot
+    const parkedSlot = await ParkSlot.find({
+      where: {
+        plateNumber: plateNumber
+      }
+    });
+    return parkedSlot.length > 0 ? parkedSlot[0] : null;
+  }  
 };
