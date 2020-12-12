@@ -4,7 +4,7 @@ const disable = require('../../common/helper').disableHelper;
 const rq = require('../../common/helper').httpHelper;
 const app = require('../server');
 
-module.exports = function (Ticket) {
+module.exports = function(Ticket) {
   disable.disableAllMethods(Ticket, ['find']);
 
   Ticket.createTicket = async (plateNumber, cb) => {
@@ -12,35 +12,35 @@ module.exports = function (Ticket) {
       const ticket = await Ticket.create(
         {
           plateNumber: plateNumber,
-          clockIn: (new Date()).toISOString()
+          clockIn: (new Date()).toISOString(),
         }
       );
 
       if (ticket) {
-        let activityLog = {
-          "status": "SUCCESS",
-          "type": "CREATE_TICKET",
-          "additionalData": JSON.stringify(ticket),
-        }
+        const activityLog = {
+          'status': 'SUCCESS',
+          'type': 'CREATE_TICKET',
+          'additionalData': JSON.stringify(ticket),
+        };
         app.models.ActivityLog.create(activityLog);
         return ticket;
       } else {
         return null;
       }
     } catch (error) {
-      let activityLog = {
-        "status": "FAIL",
-        "type": "CREATE_TICKET",
-        "additionalData": JSON.stringify({
+      const activityLog = {
+        'status': 'FAIL',
+        'type': 'CREATE_TICKET',
+        'additionalData': JSON.stringify({
           plateNumber: plateNumber,
           clockIn: (new Date()).toISOString(),
-          error
+          error,
         }),
-      }
+      };
       app.models.ActivityLog.create(activityLog);
       throw new Error(error.message);
     }
-  }
+  };
 
   Ticket.updateLeave = async (ticket, cb) => {
     try {
@@ -48,30 +48,29 @@ module.exports = function (Ticket) {
         {
           id: ticket.id,
           clockOut: (new Date()).toISOString(),
-          updatedAt: (new Date()).toISOString()
+          updatedAt: (new Date()).toISOString(),
         }
       );
-      let activityLog = {
-        "status": "SUCCESS",
-        "type": "UPDATE_LEAVE_TICKET",
-        "additionalData": JSON.stringify(updateTicket),
-      }
+      const activityLog = {
+        'status': 'SUCCESS',
+        'type': 'UPDATE_LEAVE_TICKET',
+        'additionalData': JSON.stringify(updateTicket),
+      };
       app.models.ActivityLog.create(activityLog);
       return updateTicket;
-
     } catch (error) {
-      let activityLog = {
-        "status": "FAIL",
-        "type": "UPDATE_LEAVE_TICKET",
-        "additionalData": JSON.stringify({
+      const activityLog = {
+        'status': 'FAIL',
+        'type': 'UPDATE_LEAVE_TICKET',
+        'additionalData': JSON.stringify({
           ticket,
-          error
+          error,
         }),
-      }
+      };
       app.models.ActivityLog.create(activityLog);
       throw new Error(error.message);
     }
-  }
+  };
 
   Ticket.getLatestTicket = async (plateNumber) => {
     const lastestTicket = await Ticket.find({
@@ -79,8 +78,8 @@ module.exports = function (Ticket) {
         plateNumber: plateNumber,
       },
       order: 'createdAt DESC',
-      limit: 1
+      limit: 1,
     });
     return lastestTicket.length > 0 ? lastestTicket[0] : null;
-  }
+  };
 };
