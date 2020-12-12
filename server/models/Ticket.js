@@ -38,7 +38,7 @@ module.exports = function (Ticket) {
         }),
       }
       app.models.ActivityLog.create(activityLog);
-      return cb(error);
+      throw new Error(error.message);
     }
   }
 
@@ -69,7 +69,7 @@ module.exports = function (Ticket) {
         }),
       }
       app.models.ActivityLog.create(activityLog);
-      return cb(error);
+      throw new Error(error.message);
     }
   }
 
