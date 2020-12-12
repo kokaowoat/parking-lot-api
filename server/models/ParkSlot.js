@@ -113,10 +113,10 @@ module.exports = function (ParkSlot) {
         ticketId: ticket.id,
         slotId: park.id,
         plateNumber: ticket.plateNumber,
-        clockIn: ticket.clockIn,        
+        clockIn: ticket.clockIn,
         carSize: car.size,
         slotNumber: park.number
-      }
+      };
       let activityLog = {
         "status": "SUCCESS",
         "type": "PARK_CAR",
@@ -153,7 +153,81 @@ module.exports = function (ParkSlot) {
     returns: { arg: 'data', type: 'object', root: true },
   });
 
-  ParkSlot.findNearestSlot = async (carSize) => {
+  ParkSlot.leave = async (plateNumber, cb) => {
+    try {
+      // Get ticket by plateNumber orderby latest
+      const ticket = await app.models.Ticket.getLatestTicket(plateNumber);
+      console.log('ticket', ticket);
+      
+      // Update ticket    
+      const updateTicket = await ticket.updateAttributes(
+        {
+          id: ticket.id,
+          clockOut: (new Date()).toISOString(),
+          updatedAt: (new Date()).toISOString()
+        }
+      );
+      console.log('updateTicket', updateTicket);
+      
+      // Update Park Slot
+      const parkedSlot = await ParkSlot.findParkedSlotByPlateNumber(plateNumber);
+      console.log('parkedSlot', parkedSlot);
+      const leave = await parkedSlot.updateAttributes(
+        {
+          id: parkedSlot.id,
+          isPark: false,
+          plateNumber: null,
+          updatedAt: (new Date()).toISOString()
+        }
+      );
+      console.log('leave', leave);
+
+      // Activity log
+      const leaveResponse = {
+        ticketId: ticket.id,
+        slotId: parkedSlot.id,
+        plateNumber: ticket.plateNumber,
+        clockIn: ticket.clockIn,
+        clockOut: ticket.clockOut,
+        carSize: parkedSlot.carSize,
+        slotNumber: parkedSlot.number
+      };
+      let activityLog = {
+        "status": "SUCCESS",
+        "type": "LEAVE_CAR",
+        "additionalData": JSON.stringify({
+          ...leaveResponse
+        }),
+      }
+      app.models.ActivityLog.create(activityLog);
+
+      return cb(null, leaveResponse);
+    } catch (error) {
+      let activityLog = {
+        "status": "FAIL",
+        "type": "LEAVE_CAR",
+        "additionalData": JSON.stringify({
+          plateNumber,
+          error
+        }),
+      }
+      app.models.ActivityLog.create(activityLog);
+      return cb({ message: error.message });
+    }
+  }
+
+  ParkSlot.remoteMethod('leave', {
+    http: {
+      path: '/leave',
+      verb: 'post',
+    },
+    accepts: [
+      { arg: 'plateNumber', type: 'string', 'required': true },
+    ],
+    returns: { arg: 'data', type: 'object', root: true },
+  });
+
+  ParkSlot.findNearestSlot = async (carSize, cb) => {
     const avaliableParkSlot = await ParkSlot.find({
       where: {
         carSize: carSize,
