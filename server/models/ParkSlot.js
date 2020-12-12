@@ -5,7 +5,7 @@ const rq = require('../../common/helper').httpHelper;
 const app = require('../server');
 
 module.exports = function (ParkSlot) {
-  disable.disableAllMethods(ParkSlot, ['find']);
+  disable.disableAllMethods(ParkSlot);
 
   ParkSlot.createParkSlotList = async (carsize, amount, cb) => {
     try {
@@ -21,7 +21,7 @@ module.exports = function (ParkSlot) {
           }),
         }
         app.models.ActivityLog.create(activityLog);
-        return cb();
+        throw new Error('Invalid parameter');
         // return;
       }
       for (let i = 0; i < amount; i++) {
@@ -53,8 +53,7 @@ module.exports = function (ParkSlot) {
         }),
       }
       app.models.ActivityLog.create(activityLog);
-      return cb({ message: error.message });
-      // return { statusCode: 500, message: error.message };
+      throw new Error(error.message);
     }
   }
 
@@ -70,34 +69,19 @@ module.exports = function (ParkSlot) {
     returns: { arg: 'data', type: 'object', root: true },
   });
 
-  ParkSlot.park = async (carsize, plateNumber, cb) => {
+  ParkSlot.park = async (carSize, plateNumber, cb) => {
     try {
-      // Create / Find Car
-      const carRes = await app.models.Car.findOrCreate(
-        {
-          where: {
-            plateNumber: plateNumber
-          }
-        },
-        {
-          plateNumber,
-          size: carsize
-        });
-      // TODO check if error
-      const car = carRes[0];
+      // Find/Create Car
+      const car = await app.models.Car.findOrCreateCar(plateNumber, carSize);
+      if (!car) {
+        return 'Cannot find or create car';
+      }
 
-      // Create Ticket
-      // TODO check if error
-      const ticket = await app.models.Ticket.create(
-        {
-          plateNumber: car.plateNumber,
-          clockIn: (new Date()).toISOString()
-        }
-      );
-      console.log('ticketRes>>', ticket);
       // Get Park Slot from nearest by car_size
       const freeSlot = await ParkSlot.findNearestSlot(car.size);
-      console.log('avaliableParkSlot>>>', freeSlot);
+      if (!freeSlot) {
+        return 'Cannot find empty slot or slots are full';
+      }
 
       // Update Park Slot
       const park = await freeSlot.updateAttributes(
@@ -108,7 +92,17 @@ module.exports = function (ParkSlot) {
           updatedAt: (new Date()).toISOString()
         }
       );
-      console.log('park>>>', park);
+      if (!park) {
+        return 'Cannot park the car';
+      }
+
+      // Create Ticket
+      const ticket = await app.models.Ticket.createTicket(car.plateNumber);
+      if (!ticket) {
+        return 'Cannot create ticket';
+      }
+
+      // Activity Log
       const parkResponse = {
         ticketId: ticket.id,
         slotId: park.id,
@@ -131,13 +125,13 @@ module.exports = function (ParkSlot) {
         "status": "FAIL",
         "type": "PARK_CAR",
         "additionalData": JSON.stringify({
-          carsize,
+          carSize,
           plateNumber,
           error
         }),
       }
       app.models.ActivityLog.create(activityLog);
-      return cb({ message: error.message });
+      throw new Error(error.message);
     }
   }
 
@@ -147,7 +141,7 @@ module.exports = function (ParkSlot) {
       verb: 'post',
     },
     accepts: [
-      { arg: 'carsize', type: 'string', 'required': true },
+      { arg: 'carSize', type: 'string', 'required': true },
       { arg: 'plateNumber', type: 'string', 'required': true },
     ],
     returns: { arg: 'data', type: 'object', root: true },
@@ -157,22 +151,23 @@ module.exports = function (ParkSlot) {
     try {
       // Get ticket by plateNumber orderby latest
       const ticket = await app.models.Ticket.getLatestTicket(plateNumber);
-      console.log('ticket', ticket);
+      if(!ticket) {
+        return 'Cannot find ticket';
+      }
 
       // Update ticket    
-      const updateTicket = await ticket.updateAttributes(
-        {
-          id: ticket.id,
-          clockOut: (new Date()).toISOString(),
-          updatedAt: (new Date()).toISOString()
-        }
-      );
-      console.log('updateTicket', updateTicket);
+      const updateTicket = await app.models.Ticket.updateLeave(ticket);
+      if(!updateTicket) {
+        return 'Cannot update ticket';
+      }
 
       // Update Park Slot
       const parkedSlot = await ParkSlot.findParkedSlotByPlateNumber(plateNumber);
-      console.log('parkedSlot', parkedSlot);
-      const leave = await parkedSlot.updateAttributes(
+      if(!parkedSlot) {
+        return `Cannot find parked slot by plate number: ${plateNumber}`;
+      }
+
+      const leaveSlot = await parkedSlot.updateAttributes(
         {
           id: parkedSlot.id,
           isPark: false,
@@ -180,7 +175,9 @@ module.exports = function (ParkSlot) {
           updatedAt: (new Date()).toISOString()
         }
       );
-      console.log('leave', leave);
+      if(!leaveSlot) {
+        return 'Cannot leave park slot';
+      }      
 
       // Activity log
       const leaveResponse = {
@@ -200,7 +197,6 @@ module.exports = function (ParkSlot) {
         }),
       }
       app.models.ActivityLog.create(activityLog);
-
       return cb(null, leaveResponse);
     } catch (error) {
       let activityLog = {
@@ -212,7 +208,7 @@ module.exports = function (ParkSlot) {
         }),
       }
       app.models.ActivityLog.create(activityLog);
-      return cb({ message: error.message });
+      throw new Error(error.message);
     }
   }
 
@@ -274,7 +270,6 @@ module.exports = function (ParkSlot) {
         order: ['carSize ASC', 'number ASC'],
       }
     );
-    console.log('parkSlot', parkSlot);
 
     return parkSlot;
   }
